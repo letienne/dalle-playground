@@ -106,7 +106,7 @@ class DalleModel:
         for i in range(max(num_predictions // jax.device_count(), 1)):
             # get a new key
             key, subkey = jax.random.split(key)
-            print("generating image i "+ i + "out of " +num_predictions+ " for " + prompt)
+            print("generating image i "+ str(i) + "out of " +str (num_predictions) + " for " + prompt)
             encoded_images = p_generate(
                 tokenized_prompt,
                 shard_prng_key(subkey),
