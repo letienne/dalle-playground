@@ -46,12 +46,6 @@ def p_decode(vqgan, indices, params):
     return vqgan.decode_code(indices, params=params)
 
 
-# score images
-@partial(jax.pmap, axis_name="batch")
-def p_clip(inputs, params):
-    logits = clip(params=params, **inputs).logits_per_image
-    return logits
-
 
 class DalleModel:
     def __init__(self, model_version: ModelSize) -> None:
@@ -87,6 +81,12 @@ class DalleModel:
         )
         self.clip_processor = CLIPProcessor.from_pretrained(CLIP_REPO, revision=CLIP_COMMIT_ID)
 
+    # score images
+    @partial(jax.pmap, axis_name="batch")
+    def p_clip(inputs, params):
+        logits = clip(params=params, **inputs).logits_per_image
+        return logits
+
 
     def tokenize_prompt(self, prompt: str):
         tokenized_prompt = self.processor([prompt])
@@ -106,7 +106,7 @@ class DalleModel:
         for i in range(max(num_predictions // jax.device_count(), 1)):
             # get a new key
             key, subkey = jax.random.split(key)
-            print("generating image i "+ str(i) + "out of " +str (num_predictions) + " for " + prompt)
+            print("generating image "+ str(i) + " out of " +str (num_predictions) + " for " + prompt)
             encoded_images = p_generate(
                 tokenized_prompt,
                 shard_prng_key(subkey),
