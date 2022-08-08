@@ -24,7 +24,9 @@ clip, clip_params = FlaxCLIPModel.from_pretrained(
     CLIP_REPO, revision=CLIP_COMMIT_ID, dtype=jnp.float16, _do_init=False
 )
 clip_processor = CLIPProcessor.from_pretrained(CLIP_REPO, revision=CLIP_COMMIT_ID)
+from flax.jax_utils import replicate
 clip_params = replicate(clip_params)
+vqgan_params = replicate(vqgan_params)
 print("load clip done")
 
 # score images
