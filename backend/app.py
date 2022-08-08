@@ -9,32 +9,11 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from consts import DEFAULT_IMG_OUTPUT_DIR
 from utils import parse_arg_boolean, parse_arg_dalle_version
-from consts import ModelSize, CLIP_REPO, CLIP_COMMIT_ID
+from consts import ModelSize
 
 app = Flask(__name__)
 CORS(app)
 print("--> Starting DALL-E Server. This might take up to two minutes.")
-
-print("load clip")
-import jax
-import jax.numpy as jnp
-from transformers import CLIPProcessor, FlaxCLIPModel
-# Load CLIP
-clip, clip_params = FlaxCLIPModel.from_pretrained(
-    CLIP_REPO, revision=CLIP_COMMIT_ID, dtype=jnp.float16, _do_init=False
-)
-clip_processor = CLIPProcessor.from_pretrained(CLIP_REPO, revision=CLIP_COMMIT_ID)
-from flax.jax_utils import replicate
-clip_params = replicate(clip_params)
-vqgan_params = replicate(vqgan_params)
-print("load clip done")
-
-# score images
-@partial(jax.pmap, axis_name="batch")
-def p_clip(inputs, params):
-    logits = clip(params=params, **inputs).logits_per_image
-    return logits
-
 
 from dalle_model import DalleModel
 dalle_model = None
