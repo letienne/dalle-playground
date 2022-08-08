@@ -82,7 +82,7 @@ class DalleModel:
         self.processor = DalleBartProcessor.from_pretrained(dalle_model, revision=DALLE_COMMIT_ID)
         
         # Load CLIP
-        self.clip, clip_params = FlaxCLIPModel.from_pretrained(
+        self.clip, self.clip_params = FlaxCLIPModel.from_pretrained(
             CLIP_REPO, revision=CLIP_COMMIT_ID, dtype=jnp.float16, _do_init=False
         )
         self.clip_processor = CLIPProcessor.from_pretrained(CLIP_REPO, revision=CLIP_COMMIT_ID)
@@ -94,6 +94,7 @@ class DalleModel:
 
 
     def generate_images(self, prompt: str, num_predictions: int):
+        num_predictions = NUM_PREDICTIONS #override from consts.py for inference
         tokenized_prompt = self.tokenize_prompt(prompt)
 
         # create a random key
