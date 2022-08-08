@@ -125,6 +125,9 @@ class DalleModel:
             decoded_images = decoded_images.clip(0.0, 1.0).reshape((-1, 256, 256, 3))
             for img in decoded_images:
                 images.append(Image.fromarray(np.asarray(img * 255, dtype=np.uint8)))
+
+        prompts = []
+        prompts += prompt
         
         # get clip scores
         clip_inputs = self.clip_processor(
@@ -136,8 +139,6 @@ class DalleModel:
             truncation=True,
         ).data
         logits = p_clip(shard(clip_inputs), clip_params)
-        prompts = []
-        prompts += prompt
         # organize scores per prompt
         p = len(prompts)
         logits = np.asarray([logits[:, i::p, i] for i in range(p)]).squeeze()
