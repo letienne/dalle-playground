@@ -14,9 +14,11 @@ from vqgan_jax.modeling_flax_vqgan import VQModel
 from flax.jax_utils import replicate
 from flax.training.common_utils import shard_prng_key
 
+from transformers import CLIPProcessor, FlaxCLIPModel
+
 import wandb
 
-from consts import COND_SCALE, DALLE_COMMIT_ID, DALLE_MODEL_MEGA_FULL, DALLE_MODEL_MEGA, DALLE_MODEL_MINI, GEN_TOP_K, GEN_TOP_P, N_PREDICTIONS, TEMPERATURE, VQGAN_COMMIT_ID, VQGAN_REPO, ModelSize
+from consts import COND_SCALE, DALLE_COMMIT_ID, DALLE_MODEL_MEGA_FULL, DALLE_MODEL_MEGA, DALLE_MODEL_MINI, GEN_TOP_K, GEN_TOP_P, N_PREDICTIONS, TEMPERATURE, VQGAN_COMMIT_ID, VQGAN_REPO, ModelSize, CLIP_REPO, CLIP_COMMIT_ID
 
 os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform" # https://github.com/saharmor/dalle-playground/issues/14#issuecomment-1147849318
 os.environ["WANDB_SILENT"] = "true"
@@ -42,6 +44,13 @@ def p_generate(
 @partial(jax.pmap, axis_name="batch", static_broadcasted_argnums=(0))
 def p_decode(vqgan, indices, params):
     return vqgan.decode_code(indices, params=params)
+
+
+# score images
+@partial(jax.pmap, axis_name="batch")
+def p_clip(inputs, params):
+    logits = clip(params=params, **inputs).logits_per_image
+    return logits
 
 
 class DalleModel:
@@ -71,6 +80,12 @@ class DalleModel:
         self.vqgan_params = replicate(vqgan_params)
 
         self.processor = DalleBartProcessor.from_pretrained(dalle_model, revision=DALLE_COMMIT_ID)
+        
+        # Load CLIP
+        clip, clip_params = FlaxCLIPModel.from_pretrained(
+            CLIP_REPO, revision=CLIP_COMMIT_ID, dtype=jnp.float16, _do_init=False
+        )
+        clip_processor = CLIPProcessor.from_pretrained(CLIP_REPO, revision=CLIP_COMMIT_ID)
 
 
     def tokenize_prompt(self, prompt: str):
@@ -110,5 +125,9 @@ class DalleModel:
             decoded_images = decoded_images.clip(0.0, 1.0).reshape((-1, 256, 256, 3))
             for img in decoded_images:
                 images.append(Image.fromarray(np.asarray(img * 255, dtype=np.uint8)))
+        
+
+            
+
 
         return images
