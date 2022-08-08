@@ -11,6 +11,10 @@ DALLE_COMMIT_ID = None
 VQGAN_REPO = "dalle-mini/vqgan_imagenet_f16_16384"
 VQGAN_COMMIT_ID = "e93a26e7707683d349bf5d5c41c5b0ef69b677a9"
 
+# CLIP model
+CLIP_REPO = "openai/clip-vit-base-patch32"
+CLIP_COMMIT_ID = None
+
 # N Predictions for infererence
 N_PREDICTIONS = 100
 
