@@ -84,7 +84,7 @@ class DalleModel:
     # score images
     @partial(jax.pmap, axis_name="batch")
     def p_clip(inputs, params):
-        logits = clip(params=params, **inputs).logits_per_image
+        logits = self.clip(params=params, **inputs).logits_per_image
         return logits
 
 
