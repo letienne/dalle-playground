@@ -16,6 +16,7 @@ CORS(app)
 print("--> Starting DALL-E Server. This might take up to two minutes.")
 
 print("load clip")
+from transformers import CLIPProcessor, FlaxCLIPModel
 # Load CLIP
 clip, clip_params = FlaxCLIPModel.from_pretrained(
     CLIP_REPO, revision=CLIP_COMMIT_ID, dtype=jnp.float16, _do_init=False
