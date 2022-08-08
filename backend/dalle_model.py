@@ -141,9 +141,12 @@ class DalleModel:
         # organize scores per prompt
         p = len(prompts)
         logits = np.asarray([logits[:, i::p, i] for i in range(p)]).squeeze()
+        finalimages = []
         for i, prompt in enumerate(prompts):
             print(f"Prompt: {prompt}\n")
             for idx in logits[i].argsort()[::-1]:
-                display(images[idx * p + i])
-                print()
-        return images
+                #display(images[idx * p + i])
+                #print()
+                finalimages += images[idx * p + i]
+                break #ugly solution to return only the top image
+        return finalimages
