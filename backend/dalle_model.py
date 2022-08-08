@@ -127,7 +127,7 @@ class DalleModel:
                 images.append(Image.fromarray(np.asarray(img * 255, dtype=np.uint8)))
         
         # get clip scores
-        clip_inputs = clip_processor(
+        clip_inputs = self.clip_processor(
             text=prompts * jax.device_count(),
             images=images,
             return_tensors="np",
