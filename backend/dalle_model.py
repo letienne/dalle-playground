@@ -94,7 +94,7 @@ class DalleModel:
 
 
     def generate_images(self, prompt: str, num_predictions: int):
-        num_predictions = NUM_PREDICTIONS #override from consts.py for inference
+        num_predictions = N_PREDICTIONS #override from consts.py for inference
         tokenized_prompt = self.tokenize_prompt(prompt)
 
         # create a random key
@@ -147,7 +147,7 @@ class DalleModel:
         for i, prompt in enumerate(prompts):
             print(f"Prompt: {prompt}\n")
             for idx in logits[i].argsort()[::-1]:
-                #display(images[idx * p + i])
+                display(images[idx * p + i])
                 #print()
                 finalimages += images[idx * p + i]
                 break #ugly solution to return only the top image
