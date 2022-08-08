@@ -139,7 +139,7 @@ class DalleModel:
             max_length=77,
             truncation=True,
         ).data
-        logits = p_clip(shard(clip_inputs), self.clip_params)
+        logits = self.p_clip(shard(clip_inputs), self.clip_params)
         # organize scores per prompt
         p = len(prompts)
         logits = np.asarray([logits[:, i::p, i] for i in range(p)]).squeeze()
