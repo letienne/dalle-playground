@@ -12,7 +12,7 @@ from vqgan_jax.modeling_flax_vqgan import VQModel
 
 
 from flax.jax_utils import replicate
-from flax.training.common_utils import shard_prng_key
+from flax.training.common_utils import shard_prng_key, shard
 
 from transformers import CLIPProcessor, FlaxCLIPModel
 
@@ -126,8 +126,24 @@ class DalleModel:
             for img in decoded_images:
                 images.append(Image.fromarray(np.asarray(img * 255, dtype=np.uint8)))
         
-
-            
-
-
+        # get clip scores
+        clip_inputs = clip_processor(
+            text=prompts * jax.device_count(),
+            images=images,
+            return_tensors="np",
+            padding="max_length",
+            max_length=77,
+            truncation=True,
+        ).data
+        logits = p_clip(shard(clip_inputs), clip_params)
+        prompts = []
+        prompts += prompt
+        # organize scores per prompt
+        p = len(prompts)
+        logits = np.asarray([logits[:, i::p, i] for i in range(p)]).squeeze()
+        for i, prompt in enumerate(prompts):
+            print(f"Prompt: {prompt}\n")
+            for idx in logits[i].argsort()[::-1]:
+                display(images[idx * p + i])
+                print()
         return images
