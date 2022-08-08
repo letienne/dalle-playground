@@ -82,10 +82,10 @@ class DalleModel:
         self.processor = DalleBartProcessor.from_pretrained(dalle_model, revision=DALLE_COMMIT_ID)
         
         # Load CLIP
-        clip, clip_params = FlaxCLIPModel.from_pretrained(
+        self.clip, clip_params = FlaxCLIPModel.from_pretrained(
             CLIP_REPO, revision=CLIP_COMMIT_ID, dtype=jnp.float16, _do_init=False
         )
-        clip_processor = CLIPProcessor.from_pretrained(CLIP_REPO, revision=CLIP_COMMIT_ID)
+        self.clip_processor = CLIPProcessor.from_pretrained(CLIP_REPO, revision=CLIP_COMMIT_ID)
 
 
     def tokenize_prompt(self, prompt: str):
