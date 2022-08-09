@@ -128,8 +128,8 @@ class DalleModel:
             decoded_images = decoded_images.clip(0.0, 1.0).reshape((-1, 256, 256, 3))
             for img in decoded_images:
                 images.append(Image.fromarray(np.asarray(img * 255, dtype=np.uint8)))
-                print("generated image:")
-                display(Image.fromarray(np.asarray(img * 255, dtype=np.uint8)))
+                #print("generated image:")
+                #display(Image.fromarray(np.asarray(img * 255, dtype=np.uint8)))
 
         prompts = []
         prompts.append(prompt)
@@ -156,8 +156,8 @@ class DalleModel:
         for i, prompt in enumerate(prompts):
             print(f"Prompt: {prompt}\n")
             for idx in logits[i].argsort()[::-1]:
-                print("final image is :")
-                display(images[idx * p + i])
+                #print("final image is :")
+                #display(images[idx * p + i])
                 #print()
                 finalimages.append(images[idx * p + i])
                 break #ugly solution to return only the top image
