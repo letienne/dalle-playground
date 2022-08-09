@@ -16,7 +16,7 @@ CLIP_REPO = "openai/clip-vit-base-patch32"
 CLIP_COMMIT_ID = None
 
 # N Predictions for infererence
-N_PREDICTIONS = 3
+N_PREDICTIONS = 5
 
 # We can customize generation parameters (see https://huggingface.co/blog/how-to-generate)
 GEN_TOP_K = None

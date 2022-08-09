@@ -45,6 +45,11 @@ def p_generate(
 def p_decode(vqgan, indices, params):
     return vqgan.decode_code(indices, params=params)
 
+# score images
+@partial(jax.pmap, axis_name="batch", static_broadcasted_argnums=(0))
+def p_clip(myrefobj, inputs, params):
+    logits = myrefobj.clip(params=params, **inputs).logits_per_image
+    return logits
 
 
 class DalleModel:
@@ -76,16 +81,13 @@ class DalleModel:
         self.processor = DalleBartProcessor.from_pretrained(dalle_model, revision=DALLE_COMMIT_ID)
         
         # Load CLIP
-        self.clip, self.clip_params = FlaxCLIPModel.from_pretrained(
+        self.clip, clip_params = FlaxCLIPModel.from_pretrained(
             CLIP_REPO, revision=CLIP_COMMIT_ID, dtype=jnp.float16, _do_init=False
         )
         self.clip_processor = CLIPProcessor.from_pretrained(CLIP_REPO, revision=CLIP_COMMIT_ID)
+        
+        self.clip_params = replicate(clip_params)
 
-    # score images
-    @partial(jax.pmap, axis_name="batch")
-    def p_clip(inputs, params):
-        logits = self.clip(params=params, **inputs).logits_per_image
-        return logits
 
 
     def tokenize_prompt(self, prompt: str):
@@ -128,7 +130,7 @@ class DalleModel:
                 images.append(Image.fromarray(np.asarray(img * 255, dtype=np.uint8)))
 
         prompts = []
-        prompts += prompt
+        prompts.append(prompt)
         
         # get clip scores
         clip_inputs = self.clip_processor(
@@ -139,16 +141,21 @@ class DalleModel:
             max_length=77,
             truncation=True,
         ).data
-        logits = self.p_clip(shard(clip_inputs), self.clip_params)
+        logits = p_clip(self,shard(clip_inputs), self.clip_params)
+        print("logits1 is ")
+        print(str(logits))
         # organize scores per prompt
         p = len(prompts)
+        print("p is "+str(p))
         logits = np.asarray([logits[:, i::p, i] for i in range(p)]).squeeze()
+        print("logits are")
+        print(str(logits))
         finalimages = []
         for i, prompt in enumerate(prompts):
             print(f"Prompt: {prompt}\n")
             for idx in logits[i].argsort()[::-1]:
-                display(images[idx * p + i])
+                #display(images[idx * p + i])
                 #print()
-                finalimages += images[idx * p + i]
+                finalimages.append(images[idx * p + i])
                 break #ugly solution to return only the top image
         return finalimages
